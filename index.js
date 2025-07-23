@@ -45,6 +45,7 @@ async function run() {
                 return res.status(401).send({ message: 'Forbiden Access' })
             }
             const token = req.headers.authorization.split(' ')[1]
+            
             // next()
         }
 
