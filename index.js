@@ -63,6 +63,7 @@ async function run() {
             if (!isAdmin) {
                 return res.status(403).send({ message: "Forbidden Access" })
             }
+            next()
         }
 
         //users related apis
@@ -117,9 +118,59 @@ async function run() {
 
         //menu realted apis
         app.get('/menu', async (req, res) => {
-            const result = await menuCollection.find().toArray()
+            const result = await menuCollection.find().toArray();
+            res.send(result);
+        });
+        app.get('/menu/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                $or: [
+                    { _id: id },
+                    { _id: new ObjectId(id) }
+                ]
+            }
+            const result = await menuCollection.findOne(query);
+            res.send(result);
+        })
+        app.post('/menu', verifyToken, verifyAdmin, async (req, res) => {
+            const item = req.body;
+            const result = await menuCollection.insertOne(item);
+            res.send(result);
+        });
+        app.patch('/menu/:id', async (req, res) => {
+            const item = req.body;
+            const id = req.params.id;
+            const filter = {
+                $or: [
+                    { _id: id },
+                    { _id: new ObjectId(id) }
+                ]
+            }
+            const updatedDoc = {
+                $set: {
+                    name: item.name,
+                    category: item.category,
+                    price: item.price,
+                    recipe: item.recipe,
+                    image: item.image
+                }
+            }
+            const result = await menuCollection.updateOne(filter, updatedDoc)
+            res.send(result);
+        })
+
+        app.delete('/menu/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id
+            const query = {
+                $or: [
+                    { _id: id },
+                    { _id: new ObjectId(id) }
+                ]
+            }
+            const result = await menuCollection.deleteOne(query)
             res.send(result)
         })
+
         app.get('/reviews', async (req, res) => {
             const result = await reviewCollection.find().toArray()
             res.send(result)
